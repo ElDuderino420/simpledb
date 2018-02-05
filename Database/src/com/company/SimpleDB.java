@@ -6,49 +6,65 @@ import java.util.Map;
 
 public class SimpleDB {
     String filename = "data.db";
-    Map<String, String> hm = new HashMap<>();
+    Map<String, Integer> hm = new HashMap<>();
+    long placement = 0;
+
 
     public SimpleDB(){
         hm = loadDB();
     }
 
     public void insertDB(String index, String value){
-        hm.put(index, value);
+        String ele = index + "#" + value;
 
         try {
-            FileOutputStream out = new FileOutputStream(filename);
-            ObjectOutputStream os = new ObjectOutputStream(out);
+            FileOutputStream out = new FileOutputStream(filename, true);
+
+            byte[] write = ele.getBytes("US-ASCII");
+
+            StringBuilder binary = new StringBuilder();
+            for (byte b : write) {
+                int val = b;
+                for (int i = 0; i < 8; i++){
+                    binary.append((val & 128) == 0 ? 0 : 1);
+                    val <<= 1;
+                }
+            }
+
+            System.out.println(binary);
+            int tmp = write.length + (int) placement;
+            hm.put(index, tmp);
+            placement = tmp;
+
+            out.write(binary.toString().getBytes("US-ASCII"));
+
+            //ObjectOutputStream os = new ObjectOutputStream(out);
             //os.writeUTF(index);
             //os.writeUTF(value);
-            os.writeObject(hm);
+            //os.writeObject(hm);
 
-            os.close();
+            //os.close();
             out.close();
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public String getDB(String index){
-        return hm.get(index);
-    }
+    public Integer getDB(String index){
 
-    private Map<String, String> loadDB(){
-        Map<String, String> map = new HashMap<>();
-
+        int hello = 1;
         try {
             FileInputStream in = new FileInputStream(filename);
-            ObjectInputStream is = new ObjectInputStream(in);
-            /*while (is.available() != 0){
-                String index = is.readUTF();
-                String value = is.readUTF();
-                System.out.println("putting " + index + " and " + value);
-                map.put(index, value);
-            }*/
-            return (Map<String,String>) is.readObject();
+
+            in.skip(hm.get(index));
+            System.out.println(hm.get(index));
+            hello = in.read();
+            in.close();
+
+
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -56,7 +72,28 @@ public class SimpleDB {
 
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        }
+
+        return hello;
+    }
+
+    private Map<String, Integer> loadDB(){
+        Map<String, Integer> map = new HashMap<>();
+
+        try {
+            FileInputStream in = new FileInputStream(filename);
+
+            placement = in.getChannel().size()/8;
+
+            in.close();
+
+            return map;
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (EOFException ex1) {
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
