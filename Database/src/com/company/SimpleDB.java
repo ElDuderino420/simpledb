@@ -1,6 +1,7 @@
 package com.company;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,66 +16,44 @@ public class SimpleDB {
     }
 
     public void insertDB(String index, String value){
-        String ele = index + "#" + value;
+        String ele = index + ";" + value;
+        byte[] write = ele.getBytes();
 
-        try {
-            FileOutputStream out = new FileOutputStream(filename, true);
+        hm.put(index, (int) placement);
+        System.out.println(placement);
+        placement += write.length+8;
+        System.out.println("len" + write.length);
+        //System.out.println(ele.getBytes());
+        write(ele);
 
-            byte[] write = ele.getBytes("US-ASCII");
 
-            StringBuilder binary = new StringBuilder();
-            for (byte b : write) {
-                int val = b;
-                for (int i = 0; i < 8; i++){
-                    binary.append((val & 128) == 0 ? 0 : 1);
-                    val <<= 1;
-                }
-            }
-
-            System.out.println(binary);
-            int tmp = write.length + (int) placement;
-            hm.put(index, tmp);
-            placement = tmp;
-
-            out.write(binary.toString().getBytes("US-ASCII"));
-
-            //ObjectOutputStream os = new ObjectOutputStream(out);
-            //os.writeUTF(index);
-            //os.writeUTF(value);
-            //os.writeObject(hm);
-
-            //os.close();
-            out.close();
-
-        } catch (FileNotFoundException e) {
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
-    public Integer getDB(String index){
+    public String getDB(String index){
+        int off = hm.get(index);
 
-        int hello = 1;
-        try {
-            FileInputStream in = new FileInputStream(filename);
+        try{
+            FileInputStream fis = new FileInputStream(filename);
+            System.out.println(fis.available());
+            fis.skip(off);
+            ObjectInputStream input = new ObjectInputStream(fis);
+            System.out.println("ava " + input.available());
+            System.out.println(input.skipBytes(0));
+            String k = input.readUTF();
+            System.out.println("value: " + k);
 
-            in.skip(hm.get(index));
-            System.out.println(hm.get(index));
-            hello = in.read();
-            in.close();
+
+            input.close();
+            fis.close();
+
+            return k;
 
 
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (EOFException ex1) {
-
-        } catch (IOException e) {
+        }catch(Exception e){
             e.printStackTrace();
         }
 
-        return hello;
+        return "nop";
     }
 
     private Map<String, Integer> loadDB(){
@@ -90,7 +69,7 @@ public class SimpleDB {
             return map;
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         } catch (EOFException ex1) {
 
         } catch (IOException e) {
@@ -100,6 +79,34 @@ public class SimpleDB {
 
         return map;
     }
+
+
+
+    void write(String aInput){
+        System.out.println("Writing to binary file...");
+        try {
+            ObjectOutputStream out = null;
+            try {
+                out = new ObjectOutputStream(new FileOutputStream(filename, true));
+                //out.writeByte(aInput[0]);
+                out.writeUTF(aInput);
+                //System.out.printf("%02x ", aInput[0]);
+                //System.out.println(Byte.parseByte("tes tytest"));
+            }
+            finally {
+                out.flush();
+                out.close();
+            }
+        }
+        catch(FileNotFoundException ex){
+            System.out.println("File not found.");
+        }
+        catch(IOException ex){
+            System.out.println(ex);
+        }
+    }
+
+
 
 
 }
