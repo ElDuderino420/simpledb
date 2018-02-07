@@ -7,9 +7,9 @@ public class Main {
 
 
         SimpleDB sdb = new SimpleDB();
-        sdb.insertDB("1","value1");
-        sdb.insertDB("2","value2efgdfhgj");
-        sdb.insertDB("3","value3sdfgdhjfshklhghdgrfhdghkj,llfkhjgjfhfgdf");
+        //sdb.insertDB("1","value1");
+        //sdb.insertDB("2","value2efgdfhgj");
+        //sdb.insertDB("3","value3sdfgdhjfshklhghdgrfhdghkj,llfkhjgjfhfgdf");
         System.out.println(sdb.getDB("1"));
         System.out.println(sdb.getDB("2"));
         System.out.println(sdb.getDB("3"));
@@ -19,4 +19,7 @@ public class Main {
         //System.out.println(sdb.getDB("7"));
         //System.out.println(sdb.getDB("8"));
     }
+
+
+
 }
